@@ -11,10 +11,10 @@ class SampleApplication(Base.AbstractApplication):
         self.langLock.acquire()
 
         # Pass the required Dialogflow parameters (add your Dialogflow parameters)
-        self.setDialogflowKey('nao_key.json')
+        self.setDialogflowKey('nao_key.json') # Add your own json-file name here
         self.setDialogflowAgent('nao-akwxxe')
 
-        # Make the robot ask the question, and wait until it is done speaking
+        # Make the robot ask the for the name, and wait until it is done speaking
         self.speechLock = Semaphore(0)
         self.sayAnimated('Hello, what is your name?')
         self.speechLock.acquire()
@@ -45,8 +45,10 @@ class SampleApplication(Base.AbstractApplication):
         self.timelock = Semaphore(0)
         self.setAudioContext('answer_time')
         self.startListening()
-        self.timelock.acquire(timeout=5)
+        self.timelock.acquire(timeout=3)
         self.stopListening()
+        if not self.time:  # wait one more second after stopListening (if needed)
+            self.timelock.acquire(timeout=1)
 
         if self.time:
             self.sayAnimated('So the time is  ' + self.time + '!')
@@ -54,6 +56,25 @@ class SampleApplication(Base.AbstractApplication):
             self.sayAnimated('Sorry, I didn\'t catch what you said.')
         self.speechLock.acquire()
 
+        # Ask how the patient is feeling
+        # self.speechLock = Semaphore(0)
+        # self.sayAnimated('How are you feeling today ' + self.name + '?')
+        # self.speechLock.acquire()
+        #
+        # self.emotion = None
+        # self.emotionLock = Semaphore(0)
+        # self.setAudioContext('answer_how_you_feeling')
+        # self.startListening()
+        # self.emotionLock.acquire(timeout=5)
+        # self.stopListening()
+        # if not self.name:  # wait one more second after stopListening (if needed)
+        #     self.emotionLock.acquire(timeout=1)
+        #
+        # if self.emotion:
+        #     self.sayAnimated('So you are feelin ' + self.emotion)
+        # else:
+        #     self.sayAnimated('Sorry, I didn\'t catch what you said.')
+        # self.speechLock.acquire()
 
     def onRobotEvent(self, event):
         if event == 'LanguageChanged':
@@ -70,6 +91,9 @@ class SampleApplication(Base.AbstractApplication):
         if intentName == 'answer_time' and len(args) > 0:
             self.time = args[0]
             self.timelock.release()
+        if intentName == 'answer_how_you_feeling' and len(args) > 0:
+            self.emotion = args[0]
+            self.emotionLock.release()
 
 # Run the application
 sample = SampleApplication()
