@@ -1,15 +1,53 @@
 import AbstractApplication as Base
+from time import sleep
+from threading import Semaphore
 
 
 class SampleApplication(Base.AbstractApplication):
     def main(self):
+        # Set the correct language (and wait for it to be changed)
+        self.langLock = Semaphore(0)
         self.setLanguage('en-US')
-        self.sayAnimated('Hello, world!')
-        sleep(2)
+        self.langLock.acquire()
+
+        # Pass the required Dialogflow parameters (add your Dialogflow parameters)
+        self.setDialogflowKey('nao_key.json')
+        self.setDialogflowAgent('NAO')
+
+        # Make the robot ask the question, and wait until it is done speaking
+        self.speechLock = Semaphore(0)
+        self.sayAnimated('Hello, what is your name?')
+        self.speechLock.acquire()
+
+        # Listen for an answer for at most 5 seconds
+        self.name = None
+        self.nameLock = Semaphore(0)
+        self.setAudioContext('answer_name')
+        self.startListening()
+        self.nameLock.acquire(timeout=3)
+        self.stopListening()
+        if not self.name:  # wait one more second after stopListening (if needed)
+            self.nameLock.acquire(timeout=1)
+
+        # Respond and wait for that to finish
+        if self.name:
+            self.sayAnimated('Nice to meet you ' + self.name + '!')
+        else:
+            self.sayAnimated('Sorry, I didn\'t catch your name.')
+        self.speechLock.acquire()
 
     def onRobotEvent(self, event):
-        print(event)
+        if event == 'LanguageChanged':
+            self.langLock.release()
+        elif event == 'TextDone':
+            self.speechLock.release()
+        elif event == 'GestureDone':
+            self.gestureLock.release()
 
+    def onAudioIntent(self, *args, intentName):
+        if intentName == 'answer_name' and len(args) > 0:
+            self.name = args[0]
+            self.nameLock.release()
 
 # Run the application
 sample = SampleApplication()
