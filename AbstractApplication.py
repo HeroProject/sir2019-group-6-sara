@@ -9,6 +9,29 @@ class AbstractApplication(object):
     __topics = ["events_robot", "detected_person", "recognised_face", "audio_language", "audio_intent", "audio_newfile",
                 "text_speech", "picture_newfile"]
 
+    quotes = ["Life is 10% what happens to you and 90% how you react to it.",
+            "Keep your eyes on the stars, and your feet on the ground.",
+            "The first step toward success is taken when you refuse to be a captive of the environment in which you first find yourself.",
+            "Do the one thing you think you cannot do. Fail at it. Try again. Do better the second time. The only people who never tumble are those who never mount the high wire. This is your moment. Own it.",
+            "The greatest discovery of all time is that a person can change his future by merely changing his attitude."]
+
+    random_questions = ["How is school going?",
+                        "How was the swimming practice?",
+                        "Did you met new people today?"]
+
+    questions = {
+        "q1" : "How are you feeling today?",
+        "r11" : "I'm glad you feel good, I'm also feeling good.",
+        "r12" : "I'm sad to hear that you're feeling unhappy.",
+        "q2" : "What did you eat?",
+        "q3" : "Did you felt positive and negative after meal?",
+        "r31" : "You're doing great, I'm really proud of you for that.",
+        "r32" : "Don't worry, it will get better. Here's something to motivate you.",
+        "r_end1" : "I'm going to sleep now.",
+        "r_end2" : "I'll see you again soon.",
+        "r_end3" : "Bye, %s"
+    }
+
     def __init__(self):
         self.__redis = redis.Redis()
         self.__pubsub = self.__redis.pubsub(ignore_subscribe_messages=True)
