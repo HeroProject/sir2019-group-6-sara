@@ -15,6 +15,9 @@ class AbstractApplication(object):
             "Do the one thing you think you cannot do. Fail at it. Try again. Do better the second time. The only people who never tumble are those who never mount the high wire. This is your moment. Own it.",
             "The greatest discovery of all time is that a person can change his future by merely changing his attitude."]
 
+    compliments = ["Girlll, I'm really proud of your progress.",
+                "I feel like this can be the beginning of a incredible journey."]
+
     random_questions = ["How is school going?",
                         "How was the swimming practice?",
                         "Did you met new people today?"]
