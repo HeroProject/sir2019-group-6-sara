@@ -7,8 +7,10 @@ from threading import Semaphore
 class SampleApplication(Base.AbstractApplication):
     def general_repeat_Interaction(self):
         # Ask patient to repeat
+        self.speechLock = Semaphore(0)
         self.sayAnimated('Could you repeat, please?!')
         self.speechLock.acquire()
+        self.setAudioContext('answer_how_you_feeling_after_meal')
 
     def feeling_in_general(self):
         # Ask how the patient is feeling
@@ -29,17 +31,16 @@ class SampleApplication(Base.AbstractApplication):
                 self.emotionLock.acquire(timeout=1)
 
             if self.emotion:
-                loop = 2
                 output = True
                 if self.emotion == 'happy':
                     self.say('So you are feelin ' + self.emotion)
                     self.doGesture('happy/behavior_1') #custom animation installed on nao
                 else:
                     self.sayAnimated('Too bad dude.')
+                return False
             else:
-                self.sayAnimated('Sorry, I didn\'t catch what you said.')
                 loop += 1
-                general_repeat_Interaction()
+                self.general_repeat_Interaction()
         self.speechLock.acquire()
 
     def feeling_about_meal_interaction(self):
@@ -51,9 +52,11 @@ class SampleApplication(Base.AbstractApplication):
         self.mealEmotion = None
         self.emotionLock = Semaphore(0)
         self.setAudioContext('answer_how_you_feeling_after_meal')
+
         self.startListening()
         self.emotionLock.acquire(timeout=5)
         self.stopListening()
+
         if not self.mealEmotion:  # wait one more second after stopListening (if needed)
             self.emotionLock.acquire(timeout=1)
 
@@ -61,9 +64,9 @@ class SampleApplication(Base.AbstractApplication):
             if self.mealEmotion == 'good_feeling':
                 self.say('So you are feelin ' + self.mealEmotion)
                 self.doGesture('happy/behavior_1') #custom animation installed on nao
-                self.sayAnimated(compliments[np.random.randint(0, len(compliments))])
+                self.sayAnimated(self.compliments[np.random.randint(0, len(self.compliments))])
             else:
-                self.sayAnimated(quotes[np.random.randint(0, len(quotes))])
+                self.sayAnimated(self.quotes[np.random.randint(0, len(self.quotes))])
         else:
             self.sayAnimated('Sorry, I didn\'t catch what you said.')
         self.speechLock.acquire()
@@ -79,51 +82,9 @@ class SampleApplication(Base.AbstractApplication):
         self.setDialogflowKey('nao_key.json') # Add your own json-file name here
         self.setDialogflowAgent('nao-akwxxe')
 
-        # # Make the robot ask the for the name, and wait until it is done speaking
-        # self.speechLock = Semaphore(0)
-        # self.sayAnimated('Hello, what is your name?')
-        # self.speechLock.acquire()
-        #
-        # # Listen for an answer for at most 5 seconds
-        # self.name = None
-        # self.nameLock = Semaphore(0)
-        # self.setAudioContext('answer_name')
-        # self.startListening()
-        # self.nameLock.acquire(timeout=5)
-        # self.stopListening()
-        # if not self.name:  # wait one more second after stopListening (if needed)
-        #     self.nameLock.acquire(timeout=1)
-        #
-        # # Respond and wait for that to finish
-        # if self.name:
-        #     self.sayAnimated('Nice to meet you ' + self.name + '!')
-        # else:
-        #     self.sayAnimated('Sorry, I didn\'t catch your name.')
-        # self.speechLock.acquire()
-        #
-        # # Ask for the time
-        # self.speechLock = Semaphore(0)
-        # self.sayAnimated('Could you tell me the time ' + self.name + '?')
-        # self.speechLock.acquire()
-        #
-        # self.time = None
-        # self.timelock = Semaphore(0)
-        # self.setAudioContext('answer_time')
-        # self.startListening()
-        # self.timelock.acquire(timeout=3)
-        # self.stopListening()
-        # if not self.time:  # wait one more second after stopListening (if needed)
-        #     self.timelock.acquire(timeout=1)
-        #
-        # if self.time:
-        #     self.sayAnimated('So the time is  ' + self.time + '!')
-        # else:
-        #     self.sayAnimated('Sorry, I didn\'t catch what you said.')
-        # self.speechLock.acquire()
+        self.feeling_in_general()
 
-        feeling_in_general()
-
-        feelings_about_meal_interaction()
+        # self.feeling_about_meal_interaction()
 
     def onRobotEvent(self, event):
         if event == 'LanguageChanged':
