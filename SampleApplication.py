@@ -5,6 +5,30 @@ from threading import Semaphore
 
 
 class SampleApplication(Base.AbstractApplication):
+    def main(self):
+        # Set the correct language (and wait for it to be changed)
+        self.langLock = Semaphore(0)
+        self.setLanguage('en-US')
+        self.langLock.acquire()
+
+        # Pass the required Dialogflow parameters (add your Dialogflow parameters)
+        self.setDialogflowKey('nao_key.json')  # Add your own json-file name here
+        self.setDialogflowAgent('nao-akwxxe')
+
+        # Asking the patient how they are feeling
+        self.interaction('how are you feeling today?',
+                         'answer_how_you_feeling',
+                         ['happy'],
+                         ['So you are feeling', 'I\'m sorry to hear that'],
+                         ['happy/behavior_1'])
+
+        # Asking the patient how they felt after their last meal
+        self.interaction('How did you feel after your last meal?',
+                         'answer_how_you_feeling_after_meal',
+                         ['good_feeling', 'bad_feeling'],
+                         ['So you are feeling', 'I\'m sorry to hear that'],
+                         ['happy/behavior_1'])
+
     def interaction(self, question, intent, entities, responseText, gesture, listeningTimeout=5, repeatMax=2):
         # Ask how the patient is feeling
         self.nao_speech(question)
@@ -40,55 +64,13 @@ class SampleApplication(Base.AbstractApplication):
             else:
                 # Ask patient to repeat
                 self.nao_speech()
-                self.setAudioContext('answer_how_you_feeling_after_meal')
+                self.setAudioContext(intent)
 
     # Default speech is 'repeat please'
     def nao_speech(self, speech='Could you repeat, please?!'):
         self.speechLock = Semaphore(0)
         self.sayAnimated(speech)
         self.speechLock.acquire()
-
-    # def feeling_about_meal_interaction(self):
-    #     # Ask how the patient is feeling
-    #     self.speechLock = Semaphore(0)
-    #     self.sayAnimated('How did you feel after your last meal?')
-    #     self.speechLock.acquire()
-    #
-    #     self.mealEmotion = None
-    #     self.emotionLock = Semaphore(0)
-    #     self.setAudioContext('answer_how_you_feeling_after_meal')
-    #
-    #     self.startListening()
-    #     self.emotionLock.acquire(timeout=5)
-    #     self.stopListening()
-    #
-    #     if not self.mealEmotion:  # wait one more second after stopListening (if needed)
-    #         self.emotionLock.acquire(timeout=1)
-    #
-    #     if self.mealEmotion:
-    #         if self.mealEmotion == 'good_feeling':
-    #             self.say('So you are feelin ' + self.mealEmotion)
-    #             self.doGesture('happy/behavior_1') #custom animation installed on nao
-    #             self.sayAnimated(self.compliments[np.random.randint(0, len(self.compliments))])
-    #         else:
-    #             self.sayAnimated(self.quotes[np.random.randint(0, len(self.quotes))])
-    #     else:
-    #         self.sayAnimated('Sorry, I didn\'t catch what you said.')
-    #     self.speechLock.acquire()
-
-
-    def main(self):
-        # Set the correct language (and wait for it to be changed)
-        self.langLock = Semaphore(0)
-        self.setLanguage('en-US')
-        self.langLock.acquire()
-
-        # Pass the required Dialogflow parameters (add your Dialogflow parameters)
-        self.setDialogflowKey('nao_key.json') # Add your own json-file name here
-        self.setDialogflowAgent('nao-akwxxe')
-
-        # self.interaction('how are you feeling today?', 'answer_how_you_feeling', ['happy'], ['So you are feeling', 'I\'m sorry to hear that'], ['happy/behavior_1'])
-        self.interaction('How did you feel after your last meal?', 'answer_how_you_feeling_after_meal', ['good_feeling', 'bad_feeling'], ['So you are feeling', 'I\'m sorry to hear that'], ['happy/behavior_1'])
 
     def onRobotEvent(self, event):
         if event == 'LanguageChanged':
@@ -108,6 +90,7 @@ class SampleApplication(Base.AbstractApplication):
         if intentName == 'answer_how_you_feeling' and len(args) > 0:
             self.emotion = args[0]
             self.emotionLock.release()
+
 
 # Run the application
 sample = SampleApplication()
