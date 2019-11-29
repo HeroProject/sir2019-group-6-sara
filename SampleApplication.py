@@ -23,11 +23,43 @@ class SampleApplication(Base.AbstractApplication):
         #                  ['happy/behavior_1'])
 
         # Asking the patient how they felt after their last meal
-        self.interaction('How did you feel after your last meal?',
-                         'answer_how_you_feeling_after_meal',
-                         ['good_feeling', 'bad_feeling'],
-                         ['So you are feeling', 'I\'m sorry to hear that'],
-                         ['happy/behavior_1'])
+        # self.interaction('How did you feel after your last meal?',
+        #                  'answer_how_you_feeling_after_meal',
+        #                  ['good_feeling', 'bad_feeling'],
+        #                  ['So you are feeling', 'I\'m sorry to hear that'],
+        #                  ['happy/behavior_1'])
+
+        self.game()
+
+    def game(self):
+        self.nao_speech(speech="Let's play a game of rock paper scissors.")
+
+        self.gestureLock = Semaphore(0)
+        self.doGesture('game/behavior_1')
+        self.gestureLock.acquire()
+
+        # game = np.random.uniform(0, 3)
+        # if game < 1:
+        #     self.say("Rock!")
+        #     self.doGesture('rock/rock')
+        #     self.played = "rock"
+        # elif game < 2:
+        #     self.say("Paper!")
+        #     self.doGesture('paper/paper')
+        #     self.played = "paper"
+        # else:
+        #     self.say("Scissors!")
+        #     self.doGesture('scissors/scissors')
+        #     self.played = "scissors"
+
+        self.played = "rock"
+        self.interaction(
+            question=f'So I got {self.played}. Did you win?',
+            intent='binary_answer',
+            entities=['yes', 'no'],
+            responseText=['Good for you!', 'Ha ha ha ha, I am the best'],
+            gesture="happy/behavior_1"
+        )
 
     def interaction(self, question, intent, entities, responseText, gesture, listeningTimeout=5, repeatMax=2):
         # Ask how the patient is feeling
@@ -83,7 +115,7 @@ class SampleApplication(Base.AbstractApplication):
 
     def onAudioIntent(self, *args, intentName):
         if len(args) > 0:
-            self.intentInfo = args[0]
+            self.intentName = args[0]
             self.interactionLock.release()
 
 
