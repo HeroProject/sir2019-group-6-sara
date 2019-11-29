@@ -15,26 +15,28 @@ class SampleApplication(Base.AbstractApplication):
         self.setDialogflowKey('nao_key.json')  # Add your own json-file name here
         self.setDialogflowAgent('nao-akwxxe')
 
-        # Asking the patient how they are feeling
-        # self.interaction('how are you feeling today?',
-        #                  'answer_how_you_feeling',
-        #                  ['happy'],
-        #                  ['So you are feeling', 'I\'m sorry to hear that'],
-        #                  ['happy/behavior_1'])
+         # Asking the patient how they are feeling
+         self.interaction('how are you feeling today?',
+                          'answer_how_you_feeling',
+                          ['happy'],
+                          ['So you are feeling', 'I\'m sorry to hear that'],
+                           feeling_reaction,
+                          ['happy/behavior_1'])
 
         # Asking the patient how they felt after their last meal
         self.interaction('How did you feel after your last meal?',
                          'answer_how_you_feeling_after_meal',
                          ['good_feeling', 'bad_feeling'],
                          ['So you are feeling', 'I\'m sorry to hear that'],
+                         after_meal_reaction,
                          ['happy/behavior_1'])
 
-    def interaction(self, question, intent, entities, responseText, gesture, listeningTimeout=5, repeatMax=2):
+    def interaction(self, question, intent, entities, responseText, gesture, reaction_function, listeningTimeout=5, repeatMax=2):
         # Ask how the patient is feeling
         self.nao_speech(question)
-        self.general_repeat_Interaction(intent, entities, responseText, gesture, listeningTimeout, repeatMax)
+        self.general_repeat_Interaction(intent, entities, responseText, gesture, reaction_function, listeningTimeout, repeatMax)
 
-    def general_repeat_Interaction(self, intent, entities, responseText, gesture, listeningTimeout=5, repeatMax=2):
+    def general_repeat_Interaction(self, intent, entities, responseText, gesture, reaction_function, listeningTimeout=5, repeatMax=2):
         for i in range(0, repeatMax):
             # init emotion
             self.intentInfo = None
@@ -53,14 +55,7 @@ class SampleApplication(Base.AbstractApplication):
 
             # emotion is set
             if self.intentInfo:
-                output = True
-                if self.intentInfo == entities[0]:
-                    self.say(responseText[0] + self.intentInfo)
-                    # perform custom animation gesture installed on nao (from choreograph)
-                    self.doGesture(gesture[0])
-                else:
-                    self.sayAnimated(responseText[1])
-                return False
+                reaction_function(entities, responseText, gesture)
             else:
                 # Ask patient to repeat
                 if (i != repeatMax-1):
@@ -72,6 +67,21 @@ class SampleApplication(Base.AbstractApplication):
         self.speechLock = Semaphore(0)
         self.sayAnimated(speech)
         self.speechLock.acquire()
+
+    def feeling_reaction(self, entities, responseText,gesture):
+        if self.intentInfo == entities[0]:
+            self.say(responseText[0] + self.intentInfo)
+            self.doGesture(gesture[0])
+        else:
+            self.sayAnimated(responseText[1])
+
+    def after_meal_reaction(self, entities, responseText, gesture):
+        if self.intentInfo == entities[0]:
+            self.say(responseText[0] + self.intentInfo)
+            self.sayAnimated(self.compliments[np.random.randint(0, len(self.compliments))])
+        else:
+            self.say(responseText[1])
+            self.sayAnimated(self.quotes[np.random.randint(0, len(self.quotes))])
 
     def onRobotEvent(self, event):
         if event == 'LanguageChanged':
