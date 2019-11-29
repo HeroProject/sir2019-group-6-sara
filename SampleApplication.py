@@ -35,31 +35,37 @@ class SampleApplication(Base.AbstractApplication):
         self.game()
 
     def game(self):
-        self.nao_speech("Let's play a game of rock paper scissors.")
-        self.nao_gesture('game/behavior_1')
-
-        game = np.random.uniform(0, 3)
-        if game < 1:
-            self.nao_speech("Rock!")
-            self.doGesture('rock/rock')
-            self.played = "rock"
-        elif game < 2:
-            self.nao_speech("Paper!")
-            self.doGesture('paper/paper')
-            self.played = "paper"
-        else:
-            self.nao_speech("Scissors!")
-            self.doGesture('scissors/scissors')
-            self.played = "scissors"
-
-        #self.played = "rock"
         self.interaction(
-            question=f'So I got {self.played}. Did you win?',
+            question="Would you like to play a game of rock paper scissors with me?",
             intent='binary_answer',
             entities=['yes', 'no'],
-            responseText=['Good for you!', 'Ha ha ha ha, I am the best'],
-            gesture="happy/behavior_1"
+            responseText=["Yay, let's play!", "Aw, maybe another time then"],
+            gesture=[""]
         )
+
+        if self.intentName == 'yes':
+            self.nao_gesture('game/behavior_1')
+            game = np.random.uniform(0, 3)
+            if game < 1:
+                self.nao_speech("Rock!")
+                self.doGesture('rock/rock')
+                self.played = "rock"
+            elif game < 2:
+                self.nao_speech("Paper!")
+                self.doGesture('paper/paper')
+                self.played = "paper"
+            else:
+                self.nao_speech("Scissors!")
+                self.doGesture('scissors/scissors')
+                self.played = "scissors"
+
+            self.interaction(
+                question=f'So I got {self.played}. Did you win?',
+                intent='binary_answer',
+                entities=['yes', 'no'],
+                responseText=['Good for you!', 'Ha ha ha ha, I am the best'],
+                gesture="happy/behavior_1"
+            )
 
     def introduction(self, dialogue):
         self.nao_speech(dialogue)
@@ -91,7 +97,7 @@ class SampleApplication(Base.AbstractApplication):
             if self.intentName:
                 output = True
                 if self.intentName == entities[0]:
-                    self.say(responseText[0] + self.intentName)
+                    self.nao_speech(responseText[0] + self.intentName)
                     # perform custom animation gesture installed on nao (from choreograph)
                     self.doGesture(gesture[0])
                 else:
