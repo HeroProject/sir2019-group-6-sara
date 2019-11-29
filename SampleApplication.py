@@ -113,6 +113,11 @@ def game(self):
             self.say(responseText[1])
             self.sayAnimated(self.quotes[np.random.randint(0, len(self.quotes))])
 
+    def nao_gesture(self, gesture):
+        self.gestureLock = Semaphore(0)
+        self.doGesture(gesture)
+        self.gestureLock.acquire()
+
     def onRobotEvent(self, event):
         if event == 'LanguageChanged':
             self.langLock.release()
