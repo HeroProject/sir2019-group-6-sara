@@ -3,4 +3,4 @@ __pycache__
 *.pyc
 
 # nao key
-/nao-key.json
+/nao_key.json
