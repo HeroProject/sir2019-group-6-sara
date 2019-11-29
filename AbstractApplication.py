@@ -9,6 +9,12 @@ class AbstractApplication(object):
     __topics = ["events_robot", "detected_person", "recognised_face", "audio_language", "audio_intent", "audio_newfile",
                 "text_speech", "picture_newfile"]
 
+    hellos = ["Hello there!",
+              "Hi!",
+              "Hey hey.",
+              "Hoi.",
+              "Hallo."]
+
     quotes = ["Life is 10% what happens to you and 90% how you react to it.",
             "Keep your eyes on the stars, and your feet on the ground.",
             "The first step toward success is taken when you refuse to be a captive of the environment in which you first find yourself.",
