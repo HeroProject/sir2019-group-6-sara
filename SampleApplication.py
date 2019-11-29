@@ -1,4 +1,5 @@
 import AbstractApplication as Base
+import random
 import numpy as np
 from time import sleep
 from threading import Semaphore
@@ -24,7 +25,7 @@ class SampleApplication(Base.AbstractApplication):
                           ['happy/behavior_1'])
 
         # Asking the patient how they felt after their last meal
-        self.interaction('How did you feel after your last meal?',
+        self.interaction(['How did you feel after your last meal?'],
                          'answer_how_you_feeling_after_meal',
                          ['good_feeling', 'bad_feeling'],
                          ['So you are feeling', 'I\'m sorry to hear that'],
@@ -39,7 +40,7 @@ class SampleApplication(Base.AbstractApplication):
     def general_repeat_Interaction(self, intent, entities, responseText, gesture, reaction_function, listeningTimeout=5, repeatMax=2):
         for i in range(0, repeatMax):
             # init emotion
-            self.intentInfo = None
+            self.intentName = None
             self.interactionLock = Semaphore(0)
 
             # setting intent to listen to
@@ -50,11 +51,14 @@ class SampleApplication(Base.AbstractApplication):
             self.interactionLock.acquire(timeout=listeningTimeout)
             self.stopListening()
             # if emotion is still not set, wait some more
-            if not self.intentInfo:
+            if not self.intentName:
                 self.interactionLock.acquire(timeout=1)
 
             # emotion is set
             if self.intentInfo:
+                reaction_function(entities, responseText, gesture)
+
+            if self.intentName:
                 reaction_function(entities, responseText, gesture)
             else:
                 # Ask patient to repeat
@@ -62,10 +66,36 @@ class SampleApplication(Base.AbstractApplication):
                     self.nao_speech()
                     self.setAudioContext(intent)
 
-    # Default speech is 'repeat please'
-    def nao_speech(self, speech='Could you repeat, please?!'):
+def game(self):
+        self.nao_speech(speech="Let's play a game of rock paper scissors.")
+
+        self.gestureLock = Semaphore(0)
+        self.doGesture('game/behavior_1')
+        self.gestureLock.acquire()
+
+        game = np.random.uniform(0, 3)
+        if game < 1:
+            self.say("Rock!")
+            self.doGesture('rock/rock')
+            self.played = "rock"
+        elif game < 2:
+            self.say("Paper!")
+            self.doGesture('paper/paper')
+            self.played = "paper"
+        else:
+            self.say("Scissors!")
+            self.doGesture('scissors/scissors')
+            self.played = "scissors"
+
+        self.played = "rock"
+
+    def nao_speech(self, speech=['Could you repeat, please?!']):
+        sentance = ""
+        for phrase in speech:
+            sentance = sentance + phrase
+
         self.speechLock = Semaphore(0)
-        self.sayAnimated(speech)
+        self.sayAnimated(sentance)
         self.speechLock.acquire()
 
     def feeling_reaction(self, entities, responseText,gesture):
@@ -93,7 +123,7 @@ class SampleApplication(Base.AbstractApplication):
 
     def onAudioIntent(self, *args, intentName):
         if len(args) > 0:
-            self.intentInfo = args[0]
+            self.intentName = args[0]
             self.interactionLock.release()
 
 
