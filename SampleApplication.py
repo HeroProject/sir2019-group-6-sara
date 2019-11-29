@@ -18,44 +18,41 @@ class SampleApplication(Base.AbstractApplication):
 
         self.introduction([random.choice(self.hellos), 'My name is SARa and I am here to help.'])
 
-        # Asking the patient how they are feeling
-        self.interaction(['how are you feeling today?'],
-                         'answer_how_you_feeling',
-                         ['happy'],
-                         ['So you are feeling', 'I\'m sorry to hear that'],
-                         ['happy/behavior_1'])
-
-        # Asking the patient how they felt after their last meal
-        self.interaction(['How did you feel after your last meal?'],
-                         'answer_how_you_feeling_after_meal',
-                         ['good_feeling', 'bad_feeling'],
-                         ['So you are feeling', 'I\'m sorry to hear that'],
-                         ['happy/behavior_1'])
+        # # Asking the patient how they are feeling
+        # self.interaction(['how are you feeling today?'],
+        #                  'answer_how_you_feeling',
+        #                  ['happy'],
+        #                  ['So you are feeling', 'I\'m sorry to hear that'],
+        #                  ['happy/behavior_1'])
+        #
+        # # Asking the patient how they felt after their last meal
+        # self.interaction(['How did you feel after your last meal?'],
+        #                  'answer_how_you_feeling_after_meal',
+        #                  ['good_feeling', 'bad_feeling'],
+        #                  ['So you are feeling', 'I\'m sorry to hear that'],
+        #                  ['happy/behavior_1'])
 
         self.game()
 
     def game(self):
-        self.nao_speech(speech="Let's play a game of rock paper scissors.")
-
-        self.gestureLock = Semaphore(0)
-        self.doGesture('game/behavior_1')
-        self.gestureLock.acquire()
+        self.nao_speech("Let's play a game of rock paper scissors.")
+        self.nao_gesture('game/behavior_1')
 
         game = np.random.uniform(0, 3)
         if game < 1:
-            self.say("Rock!")
+            self.nao_speech("Rock!")
             self.doGesture('rock/rock')
             self.played = "rock"
         elif game < 2:
-            self.say("Paper!")
+            self.nao_speech("Paper!")
             self.doGesture('paper/paper')
             self.played = "paper"
         else:
-            self.say("Scissors!")
+            self.nao_speech("Scissors!")
             self.doGesture('scissors/scissors')
             self.played = "scissors"
 
-        self.played = "rock"
+        #self.played = "rock"
         self.interaction(
             question=f'So I got {self.played}. Did you win?',
             intent='binary_answer',
@@ -115,6 +112,11 @@ class SampleApplication(Base.AbstractApplication):
         self.speechLock = Semaphore(0)
         self.sayAnimated(sentance)
         self.speechLock.acquire()
+
+    def nao_gesture(self, gesture):
+        self.gestureLock = Semaphore(0)
+        self.doGesture(gesture)
+        self.gestureLock.acquire()
 
     def onRobotEvent(self, event):
         if event == 'LanguageChanged':
