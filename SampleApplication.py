@@ -34,8 +34,64 @@ class SampleApplication(Base.AbstractApplication):
                          self.after_meal_reaction,
                          ['happy/behavior_1'])
 
-        # self.game()
+        self.game()
         self.nao_speech(random.choice(self.byes))
+
+    def gameLoop(self):
+        self.nao_gesture('game/behavior_1')
+        game = np.random.uniform(0, 3)
+        if game < 1:
+            self.doGesture('rock/rock')
+            self.nao_speech_simple("Rock!")
+            self.played = "rock"
+        elif game < 2:
+            self.doGesture('paper/paper')
+            self.nao_speech_simple("Paper!")
+            self.played = "paper"
+        else:
+            self.doGesture('scissors/scissors')
+            self.nao_speech_simple("Scissors!")
+            self.played = "scissors"
+
+        self.interaction(
+            question=f'So I got {self.played}. Did you win?',
+            intent='binary_answer',
+            entities=['yes', 'no'],
+            responseText=[random.choice(self.win), random.choice(self.lose)],
+            reaction_function=self.game_reaction,
+            gesture="happy/behavior_1"
+        )
+
+    def game(self):
+        self.interaction(
+            question="Would you like to play a game of rock paper scissors with me?",
+            intent='binary_answer',
+            entities=['yes', 'no'],
+            responseText=["Yay, let's play!", "Aw, maybe another time then"],
+            reaction_function=self.game_reaction,
+            gesture=[""]
+        )
+        if self.intentName == 'yes':
+            self.gameLoop()
+
+        while (True):
+            self.interaction(
+                question="Do you want to play again?",
+                intent='binary_answer',
+                entities=['yes', 'no'],
+                responseText=["Ok, let's play!", "Ok, we can play again later"],
+                reaction_function=self.game_reaction,
+                gesture=[""]
+            )
+
+            if self.intentName == 'yes':
+                self.gameLoop()
+            else:
+                break
+
+    def introduction(self, dialogue):
+        self.nao_speech(dialogue)
+        # self.doGesture()
 
     def interaction(self, question, intent, entities, responseText, reaction_function, gesture, listeningTimeout=5,
                     repeatMax=2):
@@ -70,42 +126,35 @@ class SampleApplication(Base.AbstractApplication):
                     self.nao_speech()
                     self.setAudioContext(intent)
 
-    def game(self):
-        self.nao_speech(speech="Let's play a game of rock paper scissors.")
-
-        self.gestureLock = Semaphore(0)
-        self.doGesture('game/behavior_1')
-        self.gestureLock.acquire()
-
-        game = np.random.uniform(0, 3)
-        if game < 1:
-            self.say("Rock!")
-            self.doGesture('rock/rock')
-            self.played = "rock"
-        elif game < 2:
-            self.say("Paper!")
-            self.doGesture('paper/paper')
-            self.played = "paper"
-        else:
-            self.say("Scissors!")
-            self.doGesture('scissors/scissors')
-            self.played = "scissors"
-
-        self.played = "rock"
-
+    # Default speech is 'repeat please'
     def nao_speech(self, speech=['Could you repeat, please?!']):
-        sentance = ""
+        sentence = ""
         for phrase in speech:
-            sentance = sentance + phrase
+            sentence = sentence + phrase
 
         self.speechLock = Semaphore(0)
-        self.sayAnimated(sentance)
+        self.sayAnimated(sentence)
+        self.speechLock.acquire()
+
+    def nao_speech_simple(self, speech=['Could you repeat please']):
+        sentence = ""
+        for phrase in speech:
+            sentence = sentence + phrase
+
+        self.speechLock = Semaphore(0)
+        self.say(sentence)
         self.speechLock.acquire()
 
     def feeling_reaction(self, entities, responseText, gesture):
         if self.intentName == entities[0]:
             self.nao_speech(responseText[0] + self.intentName)
             self.nao_gesture(gesture[0])
+        else:
+            self.nao_speech(responseText[1])
+
+    def game_reaction(self, entities, responseText, gesture):
+        if self.intentName == entities[0]:
+            self.nao_speech(responseText[0])
         else:
             self.nao_speech(responseText[1])
 
