@@ -15,6 +15,14 @@ class AbstractApplication(object):
               "Hoi.",
               "Hallo."]
 
+    byes = ["Bye!",
+            "Bye bye.",
+            "Goodbye.",
+            "Bye now.",
+            "Adios muchachos.",
+            "Ciao!",
+            "See you later!"]
+
     quotes = ["Life is 10% what happens to you and 90% how you react to it.",
             "Keep your eyes on the stars, and your feet on the ground.",
             "The first step toward success is taken when you refuse to be a captive of the environment in which you first find yourself.",

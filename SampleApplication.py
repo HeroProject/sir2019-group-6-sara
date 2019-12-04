@@ -16,6 +16,8 @@ class SampleApplication(Base.AbstractApplication):
         self.setDialogflowKey('nao_key.json')  # Add your own json-file name here
         self.setDialogflowAgent('nao-akwxxe')
 
+        self.nao_speech([random.choice(self.hellos), 'My name is SARa and I am here to help.'])
+
         # Asking the patient how they are feeling
         self.interaction('how are you feeling today?',
                          'answer_how_you_feeling',
@@ -31,6 +33,9 @@ class SampleApplication(Base.AbstractApplication):
                          ['So you are feeling', 'I\'m sorry to hear that'],
                          self.after_meal_reaction,
                          ['happy/behavior_1'])
+
+        # self.game()
+        self.nao_speech(random.choice(self.byes))
 
     def interaction(self, question, intent, entities, responseText, gesture, reaction_function, listeningTimeout=5,
                     repeatMax=2):
@@ -135,9 +140,9 @@ class SampleApplication(Base.AbstractApplication):
             self.gestureLock.release()
 
 
-    def onAudioIntent(self, *args, intentInfo):
+    def onAudioIntent(self, *args, intentName):
         if len(args) > 0:
-            self.intentInfo = args[0]
+            self.intentName = args[0]
             self.interactionLock.release()
 
 # Run the application
