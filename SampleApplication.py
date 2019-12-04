@@ -37,14 +37,14 @@ class SampleApplication(Base.AbstractApplication):
         # self.game()
         self.nao_speech(random.choice(self.byes))
 
-    def interaction(self, question, intent, entities, responseText, gesture, reaction_function, listeningTimeout=5,
+    def interaction(self, question, intent, entities, responseText, reaction_function, gesture, listeningTimeout=5,
                     repeatMax=2):
         # Ask how the patient is feeling
         self.nao_speech(question)
-        self.general_repeat_Interaction(intent, entities, responseText, gesture, reaction_function, listeningTimeout,
+        self.general_repeat_Interaction(intent, entities, responseText, reaction_function, gesture, listeningTimeout,
                                         repeatMax)
 
-    def general_repeat_Interaction(self, intent, entities, responseText, gesture, reaction_function, listeningTimeout=5,
+    def general_repeat_Interaction(self, intent, entities, responseText, reaction_function, gesture, listeningTimeout=5,
                                    repeatMax=2):
         for i in range(0, repeatMax):
             # init emotion
@@ -61,10 +61,6 @@ class SampleApplication(Base.AbstractApplication):
             # if emotion is still not set, wait some more
             if not self.intentName:
                 self.interactionLock.acquire(timeout=1)
-
-            # emotion is set
-            if self.intentInfo:
-                reaction_function(entities, responseText, gesture)
 
             if self.intentName:
                 reaction_function(entities, responseText, gesture)
@@ -97,7 +93,6 @@ class SampleApplication(Base.AbstractApplication):
 
         self.played = "rock"
 
-
     def nao_speech(self, speech=['Could you repeat, please?!']):
         sentance = ""
         for phrase in speech:
@@ -107,29 +102,25 @@ class SampleApplication(Base.AbstractApplication):
         self.sayAnimated(sentance)
         self.speechLock.acquire()
 
-
     def feeling_reaction(self, entities, responseText, gesture):
-        if self.intentInfo == entities[0]:
-            self.say(responseText[0] + self.intentInfo)
-            self.doGesture(gesture[0])
+        if self.intentName == entities[0]:
+            self.nao_speech(responseText[0] + self.intentName)
+            self.nao_gesture(gesture[0])
         else:
-            self.sayAnimated(responseText[1])
-
+            self.nao_speech(responseText[1])
 
     def after_meal_reaction(self, entities, responseText, gesture):
-        if self.intentInfo == entities[0]:
-            self.say(responseText[0] + self.intentInfo)
-            self.sayAnimated(self.compliments[np.random.randint(0, len(self.compliments))])
+        if self.intentName == entities[0]:
+            self.nao_speech(responseText[0] + self.intentName)
+            self.nao_speech(self.compliments[np.random.randint(0, len(self.compliments))])
         else:
-            self.say(responseText[1])
-            self.sayAnimated(self.quotes[np.random.randint(0, len(self.quotes))])
-
+            self.nao_speech(responseText[1])
+            self.nao_speech(self.quotes[np.random.randint(0, len(self.quotes))])
 
     def nao_gesture(self, gesture):
         self.gestureLock = Semaphore(0)
         self.doGesture(gesture)
         self.gestureLock.acquire()
-
 
     def onRobotEvent(self, event):
         if event == 'LanguageChanged':
@@ -139,11 +130,11 @@ class SampleApplication(Base.AbstractApplication):
         elif event == 'GestureDone':
             self.gestureLock.release()
 
-
     def onAudioIntent(self, *args, intentName):
         if len(args) > 0:
             self.intentName = args[0]
             self.interactionLock.release()
+
 
 # Run the application
 sample = SampleApplication()
