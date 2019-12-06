@@ -60,7 +60,7 @@ class SampleApplication(Base.AbstractApplication):
             intent='binary_answer',
             entities=['yes', 'no'],
             responseText=[random.choice(self.win), random.choice(self.lose)],
-            reaction_function=self.game_reaction,
+            reaction_function=self.general_reaction,
             gesture="happy/behavior_1"
         )
 
