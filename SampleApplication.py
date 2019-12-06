@@ -11,10 +11,13 @@ class SampleApplication(Base.AbstractApplication):
         self.langLock = Semaphore(0)
         self.setLanguage('en-US')
         self.langLock.acquire()
-
         # Pass the required Dialogflow parameters (add your Dialogflow parameters)
         self.setDialogflowKey('nao_key.json')  # Add your own json-file name here
         self.setDialogflowAgent('nao-akwxxe')
+
+        # keep track of patient mood
+        self.moodCounter = 0;
+        self.nOfInteractions = 3;
 
         self.nao_speech([random.choice(self.hellos), 'My name is SARa and I am here to help.'])
 
@@ -34,8 +37,18 @@ class SampleApplication(Base.AbstractApplication):
                          self.after_meal_reaction,
                          ['happy/behavior_1'])
 
+
+
         self.game()
-        self.nao_speech(random.choice(self.byes))
+
+        # leave with a congratulatory / comforting note
+        if (self.nOfInteractions/2) >= self.moodCounter:
+            phrase = "I am really proud of the progress we made today. Let's continue like this and you'll start feeling as great as me in no time!"
+            gesture = ""
+        else:
+            phrase = "Don't give up. Things will start feeling easier as we keep on going, and you will start feeling better in no time!"
+            gesture = ""
+        self.nao_speech([phrase, "Let's talk later on. ", random.choice(self.byes)], gesture)
 
     def gameLoop(self):
         self.nao_gesture('game/behavior_1')
@@ -127,13 +140,15 @@ class SampleApplication(Base.AbstractApplication):
                     self.setAudioContext(intent)
 
     # Default speech is 'repeat please'
-    def nao_speech(self, speech=['Could you repeat, please?!']):
+    def nao_speech(self, speech=['Could you repeat, please?!'], gesture=None):
         sentence = ""
         for phrase in speech:
             sentence = sentence + phrase
 
         self.speechLock = Semaphore(0)
         self.sayAnimated(sentence)
+        if gesture:
+            self.nao_gesture(gesture)
         self.speechLock.acquire()
 
     def nao_speech_simple(self, speech=['Could you repeat please']):
@@ -149,6 +164,8 @@ class SampleApplication(Base.AbstractApplication):
         if self.intentName == entities[0]:
             self.nao_speech(responseText[0] + self.intentName)
             self.nao_gesture(gesture[0])
+            # adds +1 to patient's mood
+            self.moodCounter = self.moodCounter + 1;
         else:
             self.nao_speech(responseText[1])
 
@@ -162,6 +179,8 @@ class SampleApplication(Base.AbstractApplication):
         if self.intentName == entities[0]:
             self.nao_speech(responseText[0] + self.intentName)
             self.nao_speech(self.compliments[np.random.randint(0, len(self.compliments))])
+            # +1 to patient's mood
+            self.moodCounter = self.moodCounter + 1
         else:
             self.nao_speech(responseText[1])
             self.nao_speech(self.quotes[np.random.randint(0, len(self.quotes))])
