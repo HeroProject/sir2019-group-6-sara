@@ -35,6 +35,8 @@ class SampleApplication(Base.AbstractApplication):
                          [''])
 
         self.game()
+
+        self.nao_speech("Okay, I think that's it for today. I hope I made you feel better.")
         self.nao_speech(random.choice(self.byes))
 
     def gameLoop(self):
