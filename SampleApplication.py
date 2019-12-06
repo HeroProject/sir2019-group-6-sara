@@ -19,20 +19,20 @@ class SampleApplication(Base.AbstractApplication):
         self.nao_speech([random.choice(self.hellos), 'My name is SARa and I am here to help.'])
 
         # Asking the patient how they are feeling
-        self.interaction('how are you feeling today?',
+        self.interaction('How are you feeling today?',
                          'answer_how_you_feeling',
                          ['happy'],
-                         ['So you are feeling', 'I\'m sorry to hear that'],
-                         self.feeling_reaction,
-                         ['happy/behavior_1'])
+                         [random.choice(self.positive_responses), random.choice(self.negative_responses)],
+                         self.general_reaction,
+                         [''])
 
         # Asking the patient how they felt after their last meal
-        self.interaction(['How did you feel after your last meal?'],
+        self.interaction(['How did your last meal make you feel?'],
                          'answer_how_you_feeling_after_meal',
                          ['good_feeling', 'bad_feeling'],
-                         ['So you are feeling', 'I\'m sorry to hear that'],
+                         ["That\'s great to hear.", "That\'s okay. Maybe I could motivate with something!"],
                          self.after_meal_reaction,
-                         ['happy/behavior_1'])
+                         [''])
 
         self.game()
         self.nao_speech(random.choice(self.byes))
@@ -41,15 +41,15 @@ class SampleApplication(Base.AbstractApplication):
         self.nao_gesture('game/behavior_1')
         game = np.random.uniform(0, 3)
         if game < 1:
-            self.doGesture('rock/rock')
+            self.doGesture('game/rock')
             self.nao_speech_simple("Rock!")
             self.played = "rock"
         elif game < 2:
-            self.doGesture('paper/paper')
+            self.doGesture('game/paper')
             self.nao_speech_simple("Paper!")
             self.played = "paper"
         else:
-            self.doGesture('scissors/scissors')
+            self.doGesture('game/scissors')
             self.nao_speech_simple("Scissors!")
             self.played = "scissors"
 
@@ -64,30 +64,31 @@ class SampleApplication(Base.AbstractApplication):
 
     def game(self):
         self.interaction(
-            question="Would you like to play a game of rock paper scissors with me?",
+            question="Okay, let's forget the questions for a little bit and do something fun. "
+                     "Would you like to play a game of rock paper scissors with me?",
             intent='binary_answer',
             entities=['yes', 'no'],
             responseText=["Yay, let's play!", "Aw, maybe another time then"],
-            reaction_function=self.game_reaction,
+            reaction_function=self.general_reaction,
             gesture=[""]
         )
         if self.intentName == 'yes':
             self.gameLoop()
 
-        while (True):
-            self.interaction(
-                question="Do you want to play again?",
-                intent='binary_answer',
-                entities=['yes', 'no'],
-                responseText=["Ok, let's play!", "Ok, we can play again later"],
-                reaction_function=self.game_reaction,
-                gesture=[""]
-            )
+            while (True):
+                self.interaction(
+                    question="Do you want to play again?",
+                    intent='binary_answer',
+                    entities=['yes', 'no'],
+                    responseText=["Ok, let's play!", "Ok, we can play again later"],
+                    reaction_function=self.general_reaction,
+                    gesture=[""]
+                )
 
-            if self.intentName == 'yes':
-                self.gameLoop()
-            else:
-                break
+                if self.intentName == 'yes':
+                    self.gameLoop()
+                else:
+                    break
 
     def introduction(self, dialogue):
         self.nao_speech(dialogue)
@@ -120,11 +121,14 @@ class SampleApplication(Base.AbstractApplication):
 
             if self.intentName:
                 reaction_function(entities, responseText, gesture)
+                break
             else:
                 # Ask patient to repeat
                 if (i != repeatMax - 1):
                     self.nao_speech()
                     self.setAudioContext(intent)
+                elif (i == repeatMax - 1):
+                    self.nao_speech("Sorry, I couldn't understand what you said, let's move on.")
 
     # Default speech is 'repeat please'
     def nao_speech(self, speech=['Could you repeat, please?!']):
@@ -145,14 +149,7 @@ class SampleApplication(Base.AbstractApplication):
         self.say(sentence)
         self.speechLock.acquire()
 
-    def feeling_reaction(self, entities, responseText, gesture):
-        if self.intentName == entities[0]:
-            self.nao_speech(responseText[0] + self.intentName)
-            self.nao_gesture(gesture[0])
-        else:
-            self.nao_speech(responseText[1])
-
-    def game_reaction(self, entities, responseText, gesture):
+    def general_reaction(self, entities, responseText, gesture):
         if self.intentName == entities[0]:
             self.nao_speech(responseText[0])
         else:
@@ -160,7 +157,7 @@ class SampleApplication(Base.AbstractApplication):
 
     def after_meal_reaction(self, entities, responseText, gesture):
         if self.intentName == entities[0]:
-            self.nao_speech(responseText[0] + self.intentName)
+            self.nao_speech(responseText[0])
             self.nao_speech(self.compliments[np.random.randint(0, len(self.compliments))])
         else:
             self.nao_speech(responseText[1])

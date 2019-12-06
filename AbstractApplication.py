@@ -35,31 +35,22 @@ class AbstractApplication(object):
             "Ha ha ha ha, I'm the best!",
             "Yay I won!"]
 
+    positive_responses = ["I\'m really glad to hear that",
+                          "That's really great!",
+                          "Amazing, let\'s try to keep that positive vibe!"]
+
+    negative_responses = ["I\'m sorry to hear that. Hopefully I can make you feel better.",
+                          "That\'s okay, sometimes I feel bad too.",
+                          "I\'m sorry to hear that, maybe we can cheer each other up."]
+
     quotes = ["Life is 10% what happens to you and 90% how you react to it.",
-            "Keep your eyes on the stars, and your feet on the ground.",
-            "The first step toward success is taken when you refuse to be a captive of the environment in which you first find yourself.",
-            "Do the one thing you think you cannot do. Fail at it. Try again. Do better the second time. The only people who never tumble are those who never mount the high wire. This is your moment. Own it.",
-            "The greatest discovery of all time is that a person can change his future by merely changing his attitude."]
+              "Keep your eyes on the stars, and your feet on the ground.",
+              "The first step toward success is taken when you refuse to be a captive of the environment in which you first find yourself.",
+              "Do the one thing you think you cannot do. Fail at it. Try again. Do better the second time. The only people who never tumble are those who never mount the high wire. This is your moment. Own it.",
+              "The greatest discovery of all time is that a person can change his future by merely changing his attitude."]
 
-    compliments = ["Girlll, I'm really proud of your progress.",
-                "I feel like this can be the beginning of a incredible journey."]
-
-    random_questions = ["How is school going?",
-                        "How was the swimming practice?",
-                        "Did you met new people today?"]
-
-    questions = {
-        "q1" : "How are you feeling today?",
-        "r11" : "I'm glad you feel good, I'm also feeling good.",
-        "r12" : "I'm sad to hear that you're feeling unhappy.",
-        "q2" : "What did you eat?",
-        "q3" : "Did you felt positive and negative after meal?",
-        "r31" : "You're doing great, I'm really proud of you for that.",
-        "r32" : "Don't worry, it will get better. Here's something to motivate you.",
-        "r_end1" : "I'm going to sleep now.",
-        "r_end2" : "I'll see you again soon.",
-        "r_end3" : "Bye, %s"
-    }
+    compliments = ["I'm really proud of your progress.",
+                   "I feel like this can be the beginning of a incredible journey."]
 
     def __init__(self):
         self.__redis = redis.Redis()
@@ -75,7 +66,7 @@ class AbstractApplication(object):
             if message is not None:
                 channel = message['channel'].decode()
                 data = message['data'].decode()
-                #print("received " + data + " on " + channel)
+                # print("received " + data + " on " + channel)
                 if channel == self.__topics[0]:
                     self.onRobotEvent(event=data)
                 elif channel == self.__topics[1]:
@@ -99,7 +90,7 @@ class AbstractApplication(object):
 
     def __send(self, channel, data):
         self.__redis.publish(channel, data)
-        #print("sent " + data + " on " + channel)
+        # print("sent " + data + " on " + channel)
 
     def stop(self):
         """Stop listening to incoming events (which is done in a thread) so the Python application can close."""
