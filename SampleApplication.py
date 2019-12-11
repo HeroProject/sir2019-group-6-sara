@@ -16,9 +16,10 @@ class SampleApplication(Base.AbstractApplication):
         self.setDialogflowKey('nao_key.json')  # Add your own json-file name here
         self.setDialogflowAgent('nao-akwxxe')
 
+        # Start the interaction with the patient
         self.nao_speech([random.choice(self.hellos), 'My name is SARa and I am here to help.'])
 
-        # Asking the patient how they are feeling
+        # Ask the patient how they are feeling
         self.interaction('How are you feeling today?',
                          'answer_how_you_feeling',
                          ['happy'],
@@ -26,34 +27,36 @@ class SampleApplication(Base.AbstractApplication):
                          self.general_reaction,
                          [''])
 
-        # Asking the patient how they felt after their last meal
+        # Ask the patient how they felt after their last meal
         self.interaction(['How did your last meal make you feel?'],
                          'answer_how_you_feeling_after_meal',
                          ['good_feeling', 'bad_feeling'],
-                         ["That\'s great to hear.", "That\'s okay. Maybe I could motivate with something!"],
+                         ['That\'s great to hear.', 'That\'s okay. Maybe I could motivate with something!'],
                          self.after_meal_reaction,
                          [''])
 
+        # Ask the patient to play a game with the robot
         self.game()
 
-        self.nao_speech("Okay, I think that's it for today. I hope I made you feel better.")
+        # End the interaction
+        self.nao_speech(['I think that\'s it for today. I hope I made you feel better.'])
         self.nao_speech(random.choice(self.byes))
 
-    def gameLoop(self):
+    def game_loop(self):
         self.nao_gesture('game/behavior_1')
         game = np.random.uniform(0, 3)
         if game < 1:
             self.doGesture('game/rock')
-            self.nao_speech_simple("Rock!")
-            self.played = "rock"
+            self.nao_speech_simple('Rock!')
+            self.played = 'rock'
         elif game < 2:
             self.doGesture('game/paper')
-            self.nao_speech_simple("Paper!")
-            self.played = "paper"
+            self.nao_speech_simple('Paper!')
+            self.played = 'paper'
         else:
             self.doGesture('game/scissors')
-            self.nao_speech_simple("Scissors!")
-            self.played = "scissors"
+            self.nao_speech_simple('Scissors!')
+            self.played = 'scissors'
 
         self.interaction(
             question=f'So I got {self.played}. Did you win?',
@@ -61,49 +64,46 @@ class SampleApplication(Base.AbstractApplication):
             entities=['yes', 'no'],
             responseText=[random.choice(self.win), random.choice(self.lose)],
             reaction_function=self.general_reaction,
-            gesture="happy/behavior_1"
+            gesture=''
         )
 
     def game(self):
         self.interaction(
-            question="Okay, let's forget the questions for a little bit and do something fun. "
-                     "Would you like to play a game of rock paper scissors with me?",
+            question='Let\'s forget the questions for a little bit and do something fun. '
+                     'Would you like to play a game of rock paper scissors with me?',
             intent='binary_answer',
             entities=['yes', 'no'],
-            responseText=["Yay, let's play!", "Aw, maybe another time then"],
+            responseText=['Yay, let\'s play!', 'Aw, maybe another time then'],
             reaction_function=self.general_reaction,
-            gesture=[""]
+            gesture=['']
         )
         if self.intentName == 'yes':
-            self.gameLoop()
+            self.game_loop()
 
-            while (True):
+            while True:
                 self.interaction(
-                    question="Do you want to play again?",
+                    question='Do you want to play again?',
                     intent='binary_answer',
                     entities=['yes', 'no'],
-                    responseText=["Ok, let's play!", "Ok, we can play again later"],
+                    responseText=['Ok, let\'s play!', 'Ok, we can play again later'],
                     reaction_function=self.general_reaction,
-                    gesture=[""]
+                    gesture=['']
                 )
-
                 if self.intentName == 'yes':
-                    self.gameLoop()
+                    self.game_loop()
                 else:
                     break
 
     def introduction(self, dialogue):
         self.nao_speech(dialogue)
-        # self.doGesture()
 
     def interaction(self, question, intent, entities, responseText, reaction_function, gesture, listeningTimeout=5,
                     repeatMax=2):
-        # Ask how the patient is feeling
         self.nao_speech(question)
-        self.general_repeat_Interaction(intent, entities, responseText, reaction_function, gesture, listeningTimeout,
+        self.general_repeat_interaction(intent, entities, responseText, reaction_function, gesture, listeningTimeout,
                                         repeatMax)
 
-    def general_repeat_Interaction(self, intent, entities, responseText, reaction_function, gesture, listeningTimeout=5,
+    def general_repeat_interaction(self, intent, entities, responseText, reaction_function, gesture, listeningTimeout=5,
                                    repeatMax=2):
         for i in range(0, repeatMax):
             # init emotion
@@ -130,11 +130,11 @@ class SampleApplication(Base.AbstractApplication):
                     self.nao_speech()
                     self.setAudioContext(intent)
                 elif (i == repeatMax - 1):
-                    self.nao_speech("Sorry, I couldn't understand what you said, let's move on.")
+                    self.nao_speech(['Sorry, I couldn\'t understand what you said, let\'s move on.'])
 
     # Default speech is 'repeat please'
     def nao_speech(self, speech=['Could you repeat, please?!']):
-        sentence = ""
+        sentence = ''
         for phrase in speech:
             sentence = sentence + phrase
 
@@ -143,7 +143,7 @@ class SampleApplication(Base.AbstractApplication):
         self.speechLock.acquire()
 
     def nao_speech_simple(self, speech=['Could you repeat please']):
-        sentence = ""
+        sentence = ''
         for phrase in speech:
             sentence = sentence + phrase
 
